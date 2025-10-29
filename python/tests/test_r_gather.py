@@ -413,6 +413,5 @@ if __name__ == '__main__':
     test_cluster_radius_bounds()
     test_condition_1_with_various_r()
     test_no_valid_clustering()
-    test_isolated_point_clustering()
     test_cluster_assignment_consistency()
     print("All r-Gather tests passed.")
