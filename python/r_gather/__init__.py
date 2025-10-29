@@ -7,7 +7,7 @@ __author__ = "Your Name"
 
 # Import main modules/classes here when they exist
 from .data_structures import Point, Cluster
-from .distance_matrix import distance_matrix
+from .distance_matrix import compute_distance_matrix
 
 """
 __all__ = [

@@ -3,7 +3,7 @@ import numpy as np
 from .data_structures import Point
 
 # compute distance matrix for a set of points
-def distance_matrix(points: list[Point]) -> np.ndarray:
+def compute_distance_matrix(points: list[Point]) -> np.ndarray:
     
     # double loop
     """
@@ -20,9 +20,10 @@ def distance_matrix(points: list[Point]) -> np.ndarray:
     
     return matrix
     """
-    
-    # vectorized O(n²m)/O(n²m)
+
+    # vectorized
+    # O(n²m) / O(n²m)
     coords = np.array([p.coordinate for p in points])
     diff = coords[:, np.newaxis, :] - coords[np.newaxis, :, :]
-    matrix = np.linalg.norm(diff, axis=-1)
+    matrix = np.linalg.norm(diff, axis = -1)
     return matrix

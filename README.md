@@ -1,1 +1,7 @@
-r-Gather Algorithm Implementation
+# r-Gather Algorithm Implementation
+
+## Test
+
+open path `/python`
+
+run `pytest -v`
