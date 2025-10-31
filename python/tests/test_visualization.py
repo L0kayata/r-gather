@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import os
 import sys
 import random
+import time
 
 
 from r_gather.data_structures import Point
@@ -40,4 +41,7 @@ def test_visualization():
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     test_visualization()
+    end_time = time.time()
+    print(f"Test completed in {end_time - start_time:.2f} seconds")
