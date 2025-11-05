@@ -65,7 +65,10 @@ def flow_network_verification(n: int, centers: list[int],
     G = build_flow_network(n, centers, distance_matrix, R, r)
     
     # Compute maximum flow from source to sink
-    flow_value, flow_dict = nx.maximum_flow(G, 'source', 'sink')
+    flow_value, flow_dict = nx.maximum_flow(
+        G, 'source', 'sink',
+        flow_func=nx.algorithms.flow.shortest_augmenting_path  # 类似Dinic
+    )
     
     # Check if flow equals r * |C|
     expected_flow = r * len(centers)
