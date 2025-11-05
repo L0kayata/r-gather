@@ -67,7 +67,7 @@ def flow_network_verification(n: int, centers: list[int],
     # Compute maximum flow from source to sink
     flow_value, flow_dict = nx.maximum_flow(
         G, 'source', 'sink',
-        flow_func=nx.algorithms.flow.shortest_augmenting_path  # 类似Dinic
+        flow_func=nx.algorithms.flow.shortest_augmenting_path
     )
     
     # Check if flow equals r * |C|

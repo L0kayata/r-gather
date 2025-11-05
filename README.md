@@ -34,16 +34,65 @@
 
 open path `/python`
 
-run `pytest -v`
+run `pytest -v` for correctness test
+
+run `python -m tests.test_visualization` for visual test
 
 ## Complexity Analysis
-| Function | Time Complexity | Space Complexity |
-|---|---|---|
-| `compute_distance_matrix` | $O(n^2d)$ | $O(n^2d)$ |
-| `check_condition_1` | $O(n^2)$ | $O(n^2)$ |
-| `initial_clustering` | $O(n^2)$ | $O(n)$ |
-| `build_flow_network` | $O(n^2/r)$ | $O(n^2/r)$ |
-| `flow_network_verification` | **$O(n^5/r^2)$** | $O(n^2/r)$ |
-| `check_condition_2` | $O(n^5/r^2)$ | $O(n^2/r)$ |
-| `build_clusters_from_assignments` | $O(n)$ | $O(n)$ |
-| `compute_r_gather` | **$O(n^7/r^2)$** | $O(n^2d)$ |
+
+Step 1:
+
+* Compute pairwise distances:
+    * `coords = np.array([p.coordinate for p in points])`: $O(n \cdot d)$
+    * `diff = coords[:, np.newaxis, :] - coords[np.newaxis, :, :]`: $O(n^2 \cdot d)$
+    * `matrix = np.linalg.norm(diff, axis = -1)`: $O(n^2 \cdot d)$
+    * $O(n \cdot d) + O(n^2 \cdot d) + O(n^2 \cdot d) = O(n^2)$
+* Generate candidate radii:
+    * `distance_matrix / 2`: $O(n^2)$
+    * `np.unique()`: $O(n^2 \cdot log(n^2))$
+    * $O(n^2)$ + $O(n^2 \cdot log(n^2))$ = $O(n^2 \cdot log(n))$
+* $O(n^2 \cdot d) + O(n^2 \cdot log(n)) = O(n^2 \cdot log(n))$
+
+Step 2:
+* For each R in candidate radii:
+    * $O(n^2)$
+    * (Assuming the worst-case scenario, after sorting, there are no duplicate values. The actual value may in fact be much less than this.)
+* Condition 1:
+    * `neighbor_counts = np.sum(distance_matrix <= 2 * R, axis = 1)`: $O(n^2)$
+    * `return np.all(neighbor_counts >= r)`: $O(n)$
+    * $O(n^2) + O(n) = O(n^2)$
+* Condition 2:
+    * Phase 2.1:
+        * `while not np.all(marked):`: $O(n/r)$
+        * `for p_idx in unmarked_indices:`: $O(n)$
+        * within for: $O(n)$
+        * $O(n/r) \times O(n) \times O(n) = O(n^3)$
+        * (Each point is considered as a potential center at most once. Once a point becomes a center or is marked, it is no longer considered. The actual complexity is close to $O(n^2)$.)
+    * Phase 2.2
+        * $|C| \le \lfloor n/r \rfloor$ (worst-case scenario)
+        * V
+            * $1$ source vertex
+            * $1$ sink vertex
+            * $|C|$ center vertexs
+            * $n$ point vertexs
+        * $V = 2 + |C| + n$
+        * $V \le 2 + n/r + n = O(n)$
+        * E
+            * $|C|$ Source → Centers
+            * $|C| \cdot n$ Centers → Points (worst-case scenario)
+            * $n$ Points → Sink
+        * $E \le |C| + |C| \cdot n + n = n/r + n^2/r + n = O(n^2)$
+        * Edmonds-Karp: $O(V \cdot E^2) = O(n^5)$
+        * Dinic: $O(V^2 \cdot E) = O(n^4)$
+        * (Due to spatial locality, the number of edges from the centers to the points is far less than $|C| \cdot n$. The actual $E \ll n^2/r$, also $|C| \ll \lfloor n/r \rfloor$ in actually, so the actual running time is much better than the worst-case scenario.)
+* $O(n^2) \cdot (O(n^3) + O(n^4)) = O(n^6)$ (The actual value may in fact be much less than this.)
+
+Step 3:
+* `build_clusters_from_assignments()`: $O(n)$
+
+Final Time Complexity: $O(n^6)$ (The actual value may in fact be much less than this.)
+
+
+
+
+

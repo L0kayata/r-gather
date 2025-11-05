@@ -22,8 +22,8 @@ def test_visualization():
     # Generate 100 random points
     np.random.seed(random.randint(0, 10000))
     points = [
-        Point(id=i, coordinate=np.random.uniform(0, 1000, 2))
-        for i in range(1000)
+        Point(id=i, coordinate=np.random.uniform(0, 100, 2))
+        for i in range(100)
     ]
     
     # Run r-Gather algorithm
