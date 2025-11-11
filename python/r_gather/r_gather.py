@@ -89,9 +89,9 @@ def initial_clustering(distance_matrix: np.ndarray, R: float, r: int) -> list[in
             # Check if there are at least r unmarked points within 2R of p
             # (including p itself)
             within_2R = distance_matrix[p_idx] <= 2 * R
-            unmarked_within_2R = within_2R & ~marked
+            # unmarked_within_2R = within_2R & ~marked
             
-            if np.sum(unmarked_within_2R) >= r:
+            if np.sum(within_2R) >= r:
                 # Form a cluster with center at p
                 centers.append(p_idx)
                 # Mark all points within 2R of p (including p)
