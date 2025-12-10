@@ -17,7 +17,7 @@ def compute_r_gather(points: list[Point], r: float) -> list[Cluster]:
             continue
 
         # Condition 1
-        if not check_condition_1_grid(distance_matrix, R, r, points):
+        if not check_condition_1(distance_matrix, R, r):
             continue
 
         # Condition 2
@@ -27,6 +27,44 @@ def compute_r_gather(points: list[Point], r: float) -> list[Cluster]:
 
     # No valid clustering found
     return []
+
+def compute_r_gather_binary_search(points: list[Point], r: float) -> list[Cluster]:
+    # Compute distance matrix and candidate radii
+    distance_matrix = compute_distance_matrix(points)
+    candidate_radii = np.unique(distance_matrix / 2)
+    candidate_radii = candidate_radii[candidate_radii > 0]  # Remove 0
+    
+    if len(candidate_radii) == 0:
+        return []
+    
+    # Binary search for the smallest R
+    left, right = 0, len(candidate_radii) - 1
+    result_R = None
+    result_clusters = []
+    
+    while left <= right:
+        mid = (left + right) // 2
+        R = candidate_radii[mid]
+        
+        # Check Condition 1
+        if not check_condition_1(distance_matrix, R, r):
+            # R is too small, search right half
+            left = mid + 1
+            continue
+        
+        # Check Condition 2
+        success, clusters = check_condition_2(points, distance_matrix, R, r)
+        
+        if success:
+            # Found a valid R, try to find smaller one
+            result_R = R
+            result_clusters = clusters
+            right = mid - 1
+        else:
+            # R doesn't work, need larger R
+            left = mid + 1
+    
+    return result_clusters
 
 def check_condition_1(distance_matrix: np.ndarray, R: float, r: int) -> bool:
     # Each point p in the candidate radii should have
