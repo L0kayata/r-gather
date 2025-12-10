@@ -17,7 +17,7 @@ def compute_r_gather(points: list[Point], r: float) -> list[Cluster]:
             continue
 
         # Condition 1
-        if not check_condition_1(distance_matrix, R, r):
+        if not check_condition_1_grid(distance_matrix, R, r, points):
             continue
 
         # Condition 2
@@ -33,6 +33,92 @@ def check_condition_1(distance_matrix: np.ndarray, R: float, r: int) -> bool:
     # at least r − 1 other points within distance 2R of p.
     neighbor_counts = np.sum(distance_matrix <= 2 * R, axis = 1)
     return np.all(neighbor_counts >= r)
+
+def check_condition_1_grid(distance_matrix: np.ndarray, R: float, r: int, 
+                      points: list = None) -> bool:
+    """
+    Check Condition 1: Each point should have at least r-1 other points 
+    within distance 2R (including itself, so total >= r).
+    
+    Grid-based optimization: Divide space into cells of size 2R, 
+    only check neighbors in adjacent cells.
+    
+    Args:
+        distance_matrix: Pre-computed distance matrix
+        R: Current radius value
+        r: Minimum cluster size
+        points: Optional list of points for grid-based optimization
+    
+    Returns:
+        True if condition 1 is satisfied, False otherwise
+    """
+    n = distance_matrix.shape[0]
+    
+    # Basic validation
+    if n < r:
+        return False
+    
+    if R <= 0:
+        return False
+    
+    # If points not provided, use original vectorized method
+    if points is None:
+        neighbor_counts = np.sum(distance_matrix <= 2 * R, axis=1)
+        return np.all(neighbor_counts >= r)
+    
+    # Grid-based optimization
+    from itertools import product
+    
+    cell_size = 2 * R
+    d = len(points[0].coordinate)
+    
+    # For high dimensions (>5), 3^d neighbor cells becomes too large
+    # Fall back to original method
+    if d > 5:
+        neighbor_counts = np.sum(distance_matrix <= 2 * R, axis=1)
+        return np.all(neighbor_counts >= r)
+    
+    # Map point coordinate to grid cell index
+    def get_cell_index(coord):
+        return tuple(int(np.floor(c / cell_size)) for c in coord)
+    
+    # Build grid: cell_index -> list of point indices
+    grid = {}
+    for i, p in enumerate(points):
+        cell = get_cell_index(p.coordinate)
+        if cell not in grid:
+            grid[cell] = []
+        grid[cell].append(i)
+    
+    # Pre-compute all neighbor offsets: {-1, 0, 1}^d
+    offsets = list(product([-1, 0, 1], repeat=d))
+    
+    threshold = 2 * R
+    
+    # Check each point
+    for i, p in enumerate(points):
+        cell = get_cell_index(p.coordinate)
+        neighbor_count = 0
+        
+        # Check all neighboring cells (including self)
+        for offset in offsets:
+            neighbor_cell = tuple(cell[k] + offset[k] for k in range(d))
+            if neighbor_cell in grid:
+                for j in grid[neighbor_cell]:
+                    # Use pre-computed distance matrix
+                    if distance_matrix[i][j] <= threshold:
+                        neighbor_count += 1
+                        # Early exit: found enough neighbors
+                        if neighbor_count >= r:
+                            break
+                if neighbor_count >= r:
+                    break
+        
+        # Early exit: this point doesn't have enough neighbors
+        if neighbor_count < r:
+            return False
+    
+    return True
 
 def check_condition_2(points: list[Point], distance_matrix: np.ndarray, R: float, r: int):
     """
